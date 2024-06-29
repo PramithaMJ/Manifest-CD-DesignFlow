@@ -90,11 +90,6 @@ pipeline {
                         echo "No instance created, skipping Ansible playbook execution."
                     }
                  }
-                    // withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'docker_user', passwordVariable: 'docker_pass')]) {
-                    //         sh "docker login -u '${docker_user}' -p '${docker_pass}'"
-                    //         sh "docker run -d -p ${CLIENT_PORT}:3000 --name designflow-client-${BUILD_NUMBER} ${DOCKER_USERNAME}/designflow-ci-client:venv.BUILD_NUMBER"
-                    //         sh "docker run -d -p ${SERVER_PORT}:5000 --name designflow-server-${BUILD_NUMBER} ${DOCKER_USERNAME}/designflow-ci-server:venv.BUILD_NUMBER"
-                    // }
                 }
             }
         }
