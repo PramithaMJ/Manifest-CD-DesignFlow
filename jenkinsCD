@@ -18,7 +18,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'jenkin', url: 'https://github.com/PramithaMJ/Manifest'
+                git branch: 'main', url: 'https://github.com/PramithaMJ/Manifest'
             }
         }
 
