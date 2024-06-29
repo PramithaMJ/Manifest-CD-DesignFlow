@@ -1,0 +1,70 @@
+---
+- name: Configure DeployServer
+  hosts: deploy_server
+  become: yes
+  tasks:
+    - name: Update apt and install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Update apt again
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Ensure Docker is started and enabled
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Pull Docker image for backend
+      docker_image:
+        name: lakpahana/teamwallet-app-pipeline-back
+        tag: latest
+        source: pull
+
+    - name: Pull Docker image for client
+      docker_image:
+        name: lakpahana/teamwallet-app-pipeline-client
+        tag: latest
+        source: pull
+
+    - name: Run backend container
+      docker_container:
+        name: backend
+        image: lakpahana/teamwallet-app-pipeline-back:latest
+        state: started
+        ports:
+          - "3002:3002"
+
+    - name: Run client container
+      docker_container:
+        name: frontend
+        image: lakpahana/teamwallet-app-pipeline-client:latest
+        state: started
+        ports:
+          - "3000:3000"
+        links:
+          - "backend:backend"

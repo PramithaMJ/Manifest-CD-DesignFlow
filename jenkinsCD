@@ -1,0 +1,101 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'nodejs'
+    }
+
+    environment {
+        TF_VAR_create_deploy_server = 'true'
+        APP_NAME = "teamwallet-app-pipeline"
+        RELEASE = "1.0.0"
+        DOCKER_USER = "pramithamj"
+        DOCKER_CREDENTIALS_ID = 'dockerhub' // Docker credentials ID in Jenkins
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'jenkin', url: 'https://github.com/lakpahana/team-wallet'
+            }
+        }
+
+        stage('Log AWS Credentials') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'AMI', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        echo "AWS_ACCESS_KEY_ID: ${env.AWS_ACCESS_KEY_ID}"
+                        echo "AWS_SECRET_ACCESS_KEY: ${env.AWS_SECRET_ACCESS_KEY}"
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AMI', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AMI', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform plan'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AMI', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+
+        stage('Wait for EC2 instance to boot') {
+            steps {
+                script {
+                    def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
+                    if (instanceIp) {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            waitUntil {
+                                return sh(script: "ping -c 1 -w 1 ${instanceIp}", returnStatus: true) == 0
+                            }
+                        }
+                    } else {
+                        error "No instance IP found."
+                    }
+                }
+            }
+        }
+
+        stage('Ansible Playbook') {
+            steps {
+                script {
+                    def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
+                    if (instanceIp) {
+                        writeFile file: 'inventory', text: "[deploy_server]\n${instanceIp} ansible_ssh_private_key_file=~/.ssh/jenkins-sanjula.pem ansible_user=ubuntu"
+                        sh 'ansible-playbook -i inventory playbook.yml'
+                    } else {
+                        echo "No instance created, skipping Ansible playbook execution."
+                    }
+                }
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
