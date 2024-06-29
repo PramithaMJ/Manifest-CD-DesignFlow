@@ -81,20 +81,20 @@ pipeline {
         stage('Ansible Playbook') {
             steps {
                 script{
-                // script {
-                //     def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
-                //     if (instanceIp) {
-                //         writeFile file: 'inventory', text: "[deploy_server]\n${instanceIp} ansible_ssh_private_key_file=~/.ssh/JenkinsServerPFT.pem ansible_user=ubuntu"
-                //         sh 'ansible-playbook -i inventory playbook.yml'
-                //     } else {
-                //         echo "No instance created, skipping Ansible playbook execution."
-                //     }
-                //  }
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'docker_user', passwordVariable: 'docker_pass')]) {
-                            sh "docker login -u '${docker_user}' -p '${docker_pass}'"
-                            sh "docker run -d -p ${CLIENT_PORT}:3000 --name designflow-client-${BUILD_NUMBER} ${DOCKER_USERNAME}/designflow-ci-client:venv.BUILD_NUMBER"
-                            sh "docker run -d -p ${SERVER_PORT}:5000 --name designflow-server-${BUILD_NUMBER} ${DOCKER_USERNAME}/designflow-ci-server:venv.BUILD_NUMBER"
+                script {
+                    def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
+                    if (instanceIp) {
+                        writeFile file: 'inventory', text: "[deploy_server]\n${instanceIp} ansible_ssh_private_key_file=~/.ssh/JenkinsServerPFT.pem ansible_user=ubuntu"
+                        sh 'ansible-playbook -i inventory playbook.yml'
+                    } else {
+                        echo "No instance created, skipping Ansible playbook execution."
                     }
+                 }
+                    // withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'docker_user', passwordVariable: 'docker_pass')]) {
+                    //         sh "docker login -u '${docker_user}' -p '${docker_pass}'"
+                    //         sh "docker run -d -p ${CLIENT_PORT}:3000 --name designflow-client-${BUILD_NUMBER} ${DOCKER_USERNAME}/designflow-ci-client:venv.BUILD_NUMBER"
+                    //         sh "docker run -d -p ${SERVER_PORT}:5000 --name designflow-server-${BUILD_NUMBER} ${DOCKER_USERNAME}/designflow-ci-server:venv.BUILD_NUMBER"
+                    // }
                 }
             }
         }
