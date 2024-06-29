@@ -78,14 +78,19 @@ pipeline {
         stage('Ansible Playbook') {
             steps {
                 script {
-                    def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
-                    if (instanceIp) {
-                        writeFile file: 'inventory', text: "[deploy_server]\n${instanceIp} ansible_ssh_private_key_file=~/.ssh/JenkinsServerPFT.pem ansible_user=ubuntu"
-                        sh 'ansible-playbook -i inventory playbook.yml'
-                    } else {
-                        echo "No instance created, skipping Ansible playbook execution."
-                    }
-                }
+                    // def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
+                    // if (instanceIp) {
+                    //     writeFile file: 'inventory', text: "[deploy_server]\n${instanceIp} ansible_ssh_private_key_file=~/.ssh/JenkinsServerPFT.pem ansible_user=ubuntu"
+                    //     sh 'ansible-playbook -i inventory playbook.yml'
+                    // } else {
+                    //     echo "No instance created, skipping Ansible playbook execution."
+                    // }
+               
+
+                docker run -d -p 5000:5000 thethetharz/designflow-ci-server:venv.BUILD_NUMBER
+                docker run -d -p 3000:3000 thethetharz/designflow-ci-client:venv.BUILD_NUMBER
+                 }
+
             }
         }
 
