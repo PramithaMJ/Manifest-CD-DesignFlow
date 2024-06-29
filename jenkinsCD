@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         TF_VAR_create_deploy_server = 'true'
-        APP_NAME = "teamwallet-app-pipeline"
+        APP_NAME = "designflow-app-pipeline"
         RELEASE = "1.0.0"
         DOCKER_USER = "pramithamj"
         DOCKER_CREDENTIALS_ID = 'dockerhub' // Docker credentials ID in Jenkins
@@ -18,7 +18,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'jenkin', url: 'https://github.com/lakpahana/team-wallet'
+                git branch: 'jenkin', url: 'https://github.com/PramithaMJ/Manifest'
             }
         }
 
