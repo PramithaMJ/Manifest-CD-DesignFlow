@@ -67,6 +67,7 @@ pipeline {
                                 return sh(script: "ping -c 1 -w 1 ${instanceIp}", returnStatus: true) == 0
                             }
                         }
+                        echo "Instance IP found: ${instanceIp}"
                     } else {
                         error "No instance IP found."
                     }
