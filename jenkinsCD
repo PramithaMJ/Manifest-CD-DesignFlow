@@ -13,6 +13,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub' // Docker credentials ID in Jenkins
         IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+        DOCKER_USERNAME = "thetharz"
     }
 
     stages {
@@ -77,6 +78,7 @@ pipeline {
 
         stage('Ansible Playbook') {
             steps {
+                script{
                 // script {
                 //     def instanceIp = sh(script: 'terraform output -raw instance_ip', returnStdout: true).trim()
                 //     if (instanceIp) {
@@ -86,11 +88,13 @@ pipeline {
                 //         echo "No instance created, skipping Ansible playbook execution."
                 //     }
                 //  }
-
-                sh 'docker run -d -p 5000:5000 thethetharz/designflow-ci-server:venv.BUILD_NUMBER'
-                sh 'docker run -d -p 3000:3000 thethetharz/designflow-ci-client:venv.BUILD_NUMBER'
-               
-
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'docker_user', passwordVariable: 'docker_pass')]) {
+                        sh "docker login -u '${docker_user}' -p '${docker_pass}'"
+                
+                        sh 'docker run -d -p 5000:5000 thethetharz/designflow-ci-server:venv.BUILD_NUMBER'
+                        sh 'docker run -d -p 3000:3000 thethetharz/designflow-ci-client:venv.BUILD_NUMBER'
+                 }
+                }
             }
         }
 
