@@ -41,20 +41,20 @@
 
     - name: Pull Docker image for backend
       docker_image:
-        name: lakpahana/teamwallet-app-pipeline-back
-        tag: latest
+        name: thetharz/designflow-ci-server
+        tag: venv.BUILD_NUMBER
         source: pull
 
     - name: Pull Docker image for client
       docker_image:
-        name: lakpahana/teamwallet-app-pipeline-client
-        tag: latest
+        name: thetharz/designflow-ci-client
+        tag: venv.BUILD_NUMBER
         source: pull
 
     - name: Run backend container
       docker_container:
         name: backend
-        image: lakpahana/teamwallet-app-pipeline-back:latest
+        image: thetharz/designflow-ci-server:venv.BUILD_NUMBER
         state: started
         ports:
           - "3002:3002"
@@ -62,7 +62,7 @@
     - name: Run client container
       docker_container:
         name: frontend
-        image: lakpahana/teamwallet-app-pipeline-client:latest
+        image: thetharz/designflow-ci-client:venv.BUILD_NUMBER
         state: started
         ports:
           - "3000:3000"
