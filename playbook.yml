@@ -57,7 +57,7 @@
         image: thetharz/designflow-ci-server:venv.BUILD_NUMBER
         state: started
         ports:
-          - "3002:3002"
+          - "5000:5000"
 
     - name: Run client container
       docker_container:
