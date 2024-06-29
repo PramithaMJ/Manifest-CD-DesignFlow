@@ -85,11 +85,11 @@ pipeline {
                     // } else {
                     //     echo "No instance created, skipping Ansible playbook execution."
                     // }
-               
-
-                docker run -d -p 5000:5000 thethetharz/designflow-ci-server:venv.BUILD_NUMBER
-                docker run -d -p 3000:3000 thethetharz/designflow-ci-client:venv.BUILD_NUMBER
                  }
+
+                sh 'docker run -d -p 5000:5000 thethetharz/designflow-ci-server:venv.BUILD_NUMBER'
+                sh 'docker run -d -p 3000:3000 thethetharz/designflow-ci-client:venv.BUILD_NUMBER'
+               
 
             }
         }
